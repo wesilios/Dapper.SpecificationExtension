@@ -1,10 +1,9 @@
-﻿using Dapper.Specification.Abstractions;
+﻿namespace Dapper.Specifications.Specifications;
 
-namespace Dapper.Specification;
-
-public class Specification<T> : ISpecification<T>
+public abstract class Specification<T> : ISpecification<T>
 {
     public string TableName { get; protected set; } = string.Empty;
+    public string PrimaryKey { get; protected set; } = string.Empty;
     public string SelectClause { get; protected set; } = string.Empty;
     public string JoinClause { get; protected set; } = string.Empty;
     public string WhereClause { get; protected set; } = string.Empty;
@@ -12,9 +11,9 @@ public class Specification<T> : ISpecification<T>
     public int? Skip { get; protected set; }
     public int? Take { get; protected set; }
     public object Parameters { get; protected set; } = new { };
-    
+
     // Helper methods for a fluent API
-    protected void AddWhere(string clause, object parameters = null)
+    public void AddWhere(string clause, object? parameters = null)
     {
         if (string.IsNullOrEmpty(WhereClause))
             WhereClause = clause;
@@ -25,13 +24,13 @@ public class Specification<T> : ISpecification<T>
             Parameters = MergeParameters(Parameters, parameters);
     }
 
-    protected void AddJoin(string clause) =>
+    public void AddJoin(string clause) =>
         JoinClause += $" {clause}";
 
-    protected void AddOrder(string clause) =>
+    public void AddOrder(string clause) =>
         OrderBy = string.IsNullOrWhiteSpace(OrderBy) ? clause : $"{OrderBy}, {clause}";
 
-    protected void SetPaging(int skip, int take)
+    public void SetPaging(int skip, int take)
     {
         Skip = skip;
         Take = take;
@@ -39,9 +38,14 @@ public class Specification<T> : ISpecification<T>
 
     private object MergeParameters(object a, object b)
     {
-        var dictA = a.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(a));
+        var mergeParameters = a.GetType()
+            .GetProperties()
+            .ToDictionary(p => p.Name, p => p.GetValue(a));
         foreach (var prop in b.GetType().GetProperties())
-            dictA[prop.Name] = prop.GetValue(b);
-        return dictA;
+        {
+            mergeParameters[prop.Name] = prop.GetValue(b);
+        }
+
+        return mergeParameters;
     }
 }

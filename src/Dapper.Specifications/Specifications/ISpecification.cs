@@ -1,7 +1,8 @@
-﻿namespace Dapper.Specification.Abstractions;
+﻿namespace Dapper.Specifications.Specifications;
 
 public interface ISpecification<T>
 {
+    string PrimaryKey { get; }
     string TableName { get; }
     string SelectClause { get; }
     string JoinClause { get; }
@@ -10,4 +11,9 @@ public interface ISpecification<T>
     int? Skip { get; }
     int? Take { get; }
     object Parameters { get; }
+
+    void AddWhere(string clause, object? parameters = null);
+    void AddJoin(string clause);
+    void AddOrder(string clause);
+    void SetPaging(int skip, int take);
 }

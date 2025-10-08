@@ -4,9 +4,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D4D1DA71-D5F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B0FEE1F4-191C-4293-92DA-0AD5FBF797EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specification", "src\Dapper.Specification\Dapper.Specification.csproj", "{35FCCB0E-C951-4C28-A64A-00CD645E7F70}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specifications", "src\Dapper.Specifications\Dapper.Specifications.csproj", "{35FCCB0E-C951-4C28-A64A-00CD645E7F70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specification.Tests", "tests\Dapper.Specification.Tests\Dapper.Specification.Tests.csproj", "{50F65BCE-DFD8-4C6C-B7E5-9BA7D96751F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specifications.UnitTests", "tests\Dapper.Specifications.UnitTests\Dapper.Specifications.UnitTests.csproj", "{50F65BCE-DFD8-4C6C-B7E5-9BA7D96751F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
