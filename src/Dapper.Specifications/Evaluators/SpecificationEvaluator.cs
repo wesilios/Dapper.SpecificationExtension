@@ -24,7 +24,7 @@ public class SpecificationEvaluator
         // SELECT clause
         if (isCount)
         {
-            sb.Append("SELECT COUNT(*) ");
+            sb.Append("SELECT COUNT(*) FROM ").Append(spec.TableName);
         }
         else if (isExists)
         {
@@ -44,7 +44,8 @@ public class SpecificationEvaluator
         }
         else
         {
-            sb.Append("SELECT ").Append(spec.SelectClause ?? "*");
+            var selectClause = string.IsNullOrWhiteSpace(spec.SelectClause) ? "*" : spec.SelectClause;
+            sb.Append("SELECT ").Append(selectClause);
             sb.Append(" FROM ").Append(spec.TableName);
         }
 
