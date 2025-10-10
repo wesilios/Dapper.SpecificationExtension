@@ -40,8 +40,10 @@ public abstract class Specification<T> : ISpecification<T>
     {
         var mergeParameters = a.GetType()
             .GetProperties()
+            .Where(p => p.GetIndexParameters().Length == 0) // Skip indexed properties
             .ToDictionary(p => p.Name, p => p.GetValue(a));
-        foreach (var prop in b.GetType().GetProperties())
+
+        foreach (var prop in b.GetType().GetProperties().Where(p => p.GetIndexParameters().Length == 0))
         {
             mergeParameters[prop.Name] = prop.GetValue(b);
         }
