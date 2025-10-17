@@ -93,6 +93,4 @@ public class MySqlDialectTests
         // Assert
         result.Should().Be("0");
     }
-
 }
-

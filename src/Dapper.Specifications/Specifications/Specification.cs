@@ -10,9 +10,14 @@ public abstract class Specification<T> : ISpecification<T>
     public string OrderBy { get; protected set; } = string.Empty;
     public int? Skip { get; protected set; }
     public int? Take { get; protected set; }
-    public object Parameters { get; protected set; } = new { };
+    public DynamicParameters Parameters { get; protected init; } = new() { };
 
     // Helper methods for a fluent API
+    public void SetSelectClause(string clause)
+    {
+        SelectClause = clause;
+    }
+
     public void AddWhere(string clause, object? parameters = null)
     {
         if (string.IsNullOrEmpty(WhereClause))
@@ -21,7 +26,7 @@ public abstract class Specification<T> : ISpecification<T>
             WhereClause += $" AND {clause}";
 
         if (parameters != null)
-            Parameters = MergeParameters(Parameters, parameters);
+            MergeParameters(Parameters, parameters);
     }
 
     public void AddJoin(string clause) =>
@@ -36,18 +41,14 @@ public abstract class Specification<T> : ISpecification<T>
         Take = take;
     }
 
-    private object MergeParameters(object a, object b)
+    private void MergeParameters(DynamicParameters a, object b)
     {
-        var mergeParameters = a.GetType()
-            .GetProperties()
-            .Where(p => p.GetIndexParameters().Length == 0) // Skip indexed properties
-            .ToDictionary(p => p.Name, p => p.GetValue(a));
+        var parameters = b.GetType().GetProperties()
+            .Where(p => p.GetIndexParameters().Length == 0);
 
-        foreach (var prop in b.GetType().GetProperties().Where(p => p.GetIndexParameters().Length == 0))
+        foreach (var prop in parameters)
         {
-            mergeParameters[prop.Name] = prop.GetValue(b);
+            a.Add(prop.Name, prop.GetValue(b));
         }
-
-        return mergeParameters;
     }
 }

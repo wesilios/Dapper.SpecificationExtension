@@ -93,6 +93,4 @@ public class SqliteDialectTests
         // Assert
         result.Should().Be("0");
     }
-
 }
-

@@ -85,7 +85,8 @@ public class SpecificationTests
         spec.AddJoin("LEFT JOIN Products ON Orders.ProductId = Products.Id");
 
         // Assert
-        spec.JoinClause.Should().Be(" INNER JOIN Orders ON Users.Id = Orders.UserId LEFT JOIN Products ON Orders.ProductId = Products.Id");
+        spec.JoinClause.Should()
+            .Be(" INNER JOIN Orders ON Users.Id = Orders.UserId LEFT JOIN Products ON Orders.ProductId = Products.Id");
     }
 
     [Fact]
@@ -168,6 +169,7 @@ public class SpecificationTests
         var spec = new TestSpecification();
 
         // Act
+        spec.SetSelectClause("Id, Name AS Username, Age, IsActive");
         spec.AddWhere("Age > @MinAge", new { MinAge = 18 });
         spec.AddWhere("IsActive = 1");
         spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
@@ -176,6 +178,7 @@ public class SpecificationTests
         spec.SetPaging(0, 10);
 
         // Assert
+        spec.SelectClause.Should().Be("Id, Name AS Username, Age, IsActive");
         spec.WhereClause.Should().Be("Age > @MinAge AND IsActive = 1");
         spec.JoinClause.Should().Contain("INNER JOIN Orders");
         spec.OrderBy.Should().Be("Name ASC, Age DESC");
@@ -200,4 +203,3 @@ public class SpecificationTests
         public bool IsActive { get; set; }
     }
 }
-

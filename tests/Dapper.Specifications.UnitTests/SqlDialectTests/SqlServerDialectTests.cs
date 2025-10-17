@@ -106,5 +106,4 @@ public class SqlServerDialectTests
         // Assert
         result.Should().Be("TableName");
     }
-
 }

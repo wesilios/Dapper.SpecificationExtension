@@ -75,4 +75,3 @@ public class SqlDialectFactoryTests
         SqlDialect.Sqlite.ParameterPrefix.Should().Be("@");
     }
 }
-

@@ -72,20 +72,20 @@ public class SpecificationEvaluator
     /// Executes a specification-based query and returns results.
     /// </summary>
     public static async Task<IEnumerable<T>> QueryAsync<T>(
-        IDbConnection conn,
+        IDbConnection connection,
         ISpecification<T> spec,
         ISqlDialect dialect,
         IDbTransaction? dbTransaction = null)
     {
         var (sql, param) = Build(spec, dialect);
-        return await conn.QueryAsync<T>(sql, param, dbTransaction);
+        return await connection.QueryAsync<T>(sql, param, dbTransaction);
     }
 
     /// <summary>
     /// Executes a specification-based multi-mapping query (JOIN results).
     /// </summary>
     public static async Task<IEnumerable<TReturn>> QueryAsync<T1, T2, TReturn>(
-        IDbConnection conn,
+        IDbConnection connection,
         ISpecification<TReturn> spec,
         ISqlDialect dialect,
         Func<T1, T2, TReturn> map,
@@ -93,33 +93,33 @@ public class SpecificationEvaluator
         IDbTransaction? dbTransaction = null)
     {
         var (sql, param) = Build(spec, dialect);
-        return await conn.QueryAsync(sql, map, param, dbTransaction, splitOn: splitOn);
+        return await connection.QueryAsync(sql, map, param, dbTransaction, splitOn: splitOn);
     }
 
     /// <summary>
     /// Executes a COUNT(*) query for the given specification.
     /// </summary>
     public static async Task<int> CountAsync<T>(
-        IDbConnection conn,
+        IDbConnection connection,
         ISpecification<T> spec,
         ISqlDialect dialect,
         IDbTransaction? dbTransaction = null)
     {
         var (sql, param) = Build(spec, dialect, isCount: true);
-        return await conn.ExecuteScalarAsync<int>(sql, param, dbTransaction);
+        return await connection.ExecuteScalarAsync<int>(sql, param, dbTransaction);
     }
 
     /// <summary>
     /// Executes an EXISTS() query for the given specification.
     /// </summary>
     public static async Task<bool> ExistsAsync<T>(
-        IDbConnection conn,
+        IDbConnection connection,
         ISpecification<T> spec,
         ISqlDialect dialect,
         IDbTransaction? dbTransaction = null)
     {
         var (sql, param) = Build(spec, dialect, isExists: true);
-        var result = await conn.ExecuteScalarAsync<int>(sql, param, dbTransaction);
+        var result = await connection.ExecuteScalarAsync<int>(sql, param, dbTransaction);
         return result == 1;
     }
 }

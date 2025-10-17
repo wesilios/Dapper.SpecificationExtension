@@ -10,8 +10,9 @@ public interface ISpecification<T>
     string OrderBy { get; }
     int? Skip { get; }
     int? Take { get; }
-    object Parameters { get; }
+    DynamicParameters Parameters { get; }
 
+    void SetSelectClause(string clause);
     void AddWhere(string clause, object? parameters = null);
     void AddJoin(string clause);
     void AddOrder(string clause);

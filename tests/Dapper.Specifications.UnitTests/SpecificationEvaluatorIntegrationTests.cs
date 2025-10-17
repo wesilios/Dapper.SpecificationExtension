@@ -118,7 +118,7 @@ public class SpecificationEvaluatorIntegrationTests
         // Arrange
         var spec = new UserSpecification();
         spec.SetPaging(10, 20);
-        
+
         ISqlDialect dialect = dialectName switch
         {
             "SqlServer" => SqlDialect.SqlServer,
@@ -134,7 +134,7 @@ public class SpecificationEvaluatorIntegrationTests
         // Assert
         sql.Should().NotBeNullOrEmpty();
         sql.Should().Contain("FROM Users");
-        
+
         // Verify dialect-specific pagination
         switch (dialectName)
         {
@@ -198,7 +198,7 @@ public class SpecificationEvaluatorIntegrationTests
             OrderBy = "u.Name ASC, u.CreatedDate DESC";
             Skip = 0;
             Take = 25;
-            Parameters = new { MinAge = 18 };
+            Parameters = new DynamicParameters(new { MinAge = 18 });
         }
     }
 
@@ -245,4 +245,3 @@ public class SpecificationEvaluatorIntegrationTests
         public DateTime CreatedDate { get; set; }
     }
 }
-

@@ -93,6 +93,4 @@ public class PostgreSqlDialectTests
         // Assert
         result.Should().Be("FALSE");
     }
-
 }
-
