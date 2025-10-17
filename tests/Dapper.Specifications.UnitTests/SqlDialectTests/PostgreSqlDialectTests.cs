@@ -1,5 +1,5 @@
 ﻿using Dapper.Specifications.Dialects;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests.SqlDialectTests;
@@ -20,7 +20,7 @@ public class PostgreSqlDialectTests
         var name = _dialect.Name;
 
         // Assert
-        name.Should().Be("PostgreSQL");
+        name.ShouldBe("PostgreSQL");
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class PostgreSqlDialectTests
         var prefix = _dialect.ParameterPrefix;
 
         // Assert
-        prefix.Should().Be("@");
+        prefix.ShouldBe("@");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" LIMIT 20 OFFSET 10");
+        result.ShouldBe(" LIMIT 20 OFFSET 10");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" LIMIT 50 OFFSET 0");
+        result.ShouldBe(" LIMIT 50 OFFSET 0");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatExistsWrapper(innerQuery);
 
         // Assert
-        result.Should().Be("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN TRUE ELSE FALSE END");
+        result.ShouldBe("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN TRUE ELSE FALSE END");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatBoolean(true);
 
         // Assert
-        result.Should().Be("TRUE");
+        result.ShouldBe("TRUE");
     }
 
     [Fact]
@@ -91,6 +91,6 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatBoolean(false);
 
         // Assert
-        result.Should().Be("FALSE");
+        result.ShouldBe("FALSE");
     }
 }

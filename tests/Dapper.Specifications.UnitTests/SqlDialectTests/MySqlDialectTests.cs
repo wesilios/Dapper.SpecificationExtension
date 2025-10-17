@@ -1,5 +1,5 @@
 ﻿using Dapper.Specifications.Dialects;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests.SqlDialectTests;
@@ -20,7 +20,7 @@ public class MySqlDialectTests
         var name = _dialect.Name;
 
         // Assert
-        name.Should().Be("MySQL");
+        name.ShouldBe("MySQL");
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class MySqlDialectTests
         var prefix = _dialect.ParameterPrefix;
 
         // Assert
-        prefix.Should().Be("@");
+        prefix.ShouldBe("@");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class MySqlDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" LIMIT 10, 20");
+        result.ShouldBe(" LIMIT 10, 20");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class MySqlDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" LIMIT 0, 50");
+        result.ShouldBe(" LIMIT 0, 50");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class MySqlDialectTests
         var result = _dialect.FormatExistsWrapper(innerQuery);
 
         // Assert
-        result.Should().Be("SELECT EXISTS (SELECT 1 FROM Users WHERE IsActive = 1)");
+        result.ShouldBe("SELECT EXISTS (SELECT 1 FROM Users WHERE IsActive = 1)");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class MySqlDialectTests
         var result = _dialect.FormatBoolean(true);
 
         // Assert
-        result.Should().Be("1");
+        result.ShouldBe("1");
     }
 
     [Fact]
@@ -91,6 +91,6 @@ public class MySqlDialectTests
         var result = _dialect.FormatBoolean(false);
 
         // Assert
-        result.Should().Be("0");
+        result.ShouldBe("0");
     }
 }

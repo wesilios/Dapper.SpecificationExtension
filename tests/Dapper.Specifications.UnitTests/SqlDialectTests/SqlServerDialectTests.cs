@@ -1,5 +1,5 @@
 ﻿using Dapper.Specifications.Dialects;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests.SqlDialectTests;
@@ -20,7 +20,7 @@ public class SqlServerDialectTests
         var name = _dialect.Name;
 
         // Assert
-        name.Should().Be("SQLServer");
+        name.ShouldBe("SQLServer");
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class SqlServerDialectTests
         var prefix = _dialect.ParameterPrefix;
 
         // Assert
-        prefix.Should().Be("@");
+        prefix.ShouldBe("@");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class SqlServerDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY");
+        result.ShouldBe(" OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class SqlServerDialectTests
         var result = _dialect.FormatLimitOffset(skip, take);
 
         // Assert
-        result.Should().Be(" OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY");
+        result.ShouldBe(" OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class SqlServerDialectTests
         var result = _dialect.FormatExistsWrapper(innerQuery);
 
         // Assert
-        result.Should().Be("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN 1 ELSE 0 END");
+        result.ShouldBe("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN 1 ELSE 0 END");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class SqlServerDialectTests
         var result = _dialect.FormatBoolean(true);
 
         // Assert
-        result.Should().Be("1");
+        result.ShouldBe("1");
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class SqlServerDialectTests
         var result = _dialect.FormatBoolean(false);
 
         // Assert
-        result.Should().Be("0");
+        result.ShouldBe("0");
     }
 
     [Fact]
@@ -104,6 +104,6 @@ public class SqlServerDialectTests
         var result = dialect.QuoteIdentifier("TableName");
 
         // Assert
-        result.Should().Be("TableName");
+        result.ShouldBe("TableName");
     }
 }
