@@ -1,4 +1,6 @@
-﻿namespace Dapper.Specifications.Dialects;
+﻿using static Dapper.Specifications.SqlKeywords;
+
+namespace Dapper.Specifications.Dialects;
 
 public class SqlServerDialect : ISqlDialect
 {
@@ -6,10 +8,10 @@ public class SqlServerDialect : ISqlDialect
     public string ParameterPrefix => "@";
 
     public string FormatLimitOffset(int skip, int take)
-        => $" OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY";
+        => $" {Offset} {skip} {Rows} {FetchNext} {take} {Rows} {Only}";
 
     public string FormatExistsWrapper(string innerQuery)
-        => $"SELECT CASE WHEN EXISTS ({innerQuery}) THEN 1 ELSE 0 END";
+        => $"{SelectCaseWhenExists} ({innerQuery}) {ThenOneElseZeroEnd}";
 
     public string FormatBoolean(bool value) => value ? "1" : "0";
 

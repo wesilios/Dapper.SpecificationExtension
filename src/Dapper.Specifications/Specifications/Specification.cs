@@ -58,10 +58,36 @@ public abstract class Specification<T> : ISpecification<T>
     public DynamicParameters Parameters { get; protected init; } = new() { };
 
     /// <inheritdoc />
+    public bool IsDistinct { get; protected set; }
+
+    private readonly List<(ISpecification<T> Spec, bool IsUnionAll)> _unionSpecifications = new();
+
+    /// <inheritdoc />
+    public IReadOnlyList<(ISpecification<T> Spec, bool IsUnionAll)> UnionSpecifications => _unionSpecifications.AsReadOnly();
+
+    /// <inheritdoc />
+    public ISpecification<T>? FromSubquery { get; protected set; }
+
+    /// <inheritdoc />
+    public string? FromSubqueryAlias { get; protected set; }
+
+    private readonly List<(string Name, ISpecification<T> Spec)> _commonTableExpressions = new();
+
+    /// <inheritdoc />
+    public IReadOnlyList<(string Name, ISpecification<T> Spec)> CommonTableExpressions => _commonTableExpressions.AsReadOnly();
+
+    /// <inheritdoc />
     public ISpecification<T> SetSelectClause(string clause)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clause);
         SelectClause = clause;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> SetDistinct()
+    {
+        IsDistinct = true;
         return this;
     }
 
@@ -144,6 +170,41 @@ public abstract class Specification<T> : ISpecification<T>
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(take);
         Skip = skip;
         Take = take;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddUnion(ISpecification<T> specification)
+    {
+        ArgumentNullException.ThrowIfNull(specification);
+        _unionSpecifications.Add((specification, false));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddUnionAll(ISpecification<T> specification)
+    {
+        ArgumentNullException.ThrowIfNull(specification);
+        _unionSpecifications.Add((specification, true));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> SetFromSubquery(ISpecification<T> subquery, string alias)
+    {
+        ArgumentNullException.ThrowIfNull(subquery);
+        ArgumentException.ThrowIfNullOrWhiteSpace(alias);
+        FromSubquery = subquery;
+        FromSubqueryAlias = alias;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddCommonTableExpression(string name, ISpecification<T> specification)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(specification);
+        _commonTableExpressions.Add((name, specification));
         return this;
     }
 

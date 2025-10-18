@@ -119,7 +119,7 @@ public class SpecificationEvaluatorIntegrationTests
         var spec = new UserSpecification();
         spec.SetPaging(10, 20);
 
-        ISqlDialect dialect = dialectName switch
+        var dialect = dialectName switch
         {
             "SqlServer" => SqlDialect.SqlServer,
             "PostgreSQL" => SqlDialect.PostgreSql,

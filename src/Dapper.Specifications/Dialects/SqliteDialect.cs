@@ -1,4 +1,6 @@
-﻿namespace Dapper.Specifications.Dialects;
+﻿using static Dapper.Specifications.SqlKeywords;
+
+namespace Dapper.Specifications.Dialects;
 
 public class SqliteDialect : ISqlDialect
 {
@@ -6,10 +8,10 @@ public class SqliteDialect : ISqlDialect
     public string ParameterPrefix => "@";
 
     public string FormatLimitOffset(int skip, int take)
-        => $" LIMIT {take} OFFSET {skip}";
+        => $" {Limit} {take} {Offset} {skip}";
 
     public string FormatExistsWrapper(string innerQuery)
-        => $"SELECT EXISTS ({innerQuery})";
+        => $"{SelectExists} ({innerQuery})";
 
     public string FormatBoolean(bool value) => value ? "1" : "0";
 

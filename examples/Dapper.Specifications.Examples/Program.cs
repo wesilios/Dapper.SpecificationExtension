@@ -226,7 +226,7 @@ static async Task Example4_Pagination(SqliteConnection connection)
         .AddColumn("[yellow]Product Name[/]")
         .AddColumn(new TableColumn("[yellow]Price[/]").RightAligned());
 
-    int index = 3; // Starting from 3 because we skipped 2
+    var index = 3; // Starting from 3 because we skipped 2
     foreach (var product in products)
     {
         table.AddRow($"[dim]{index}[/]", product.Name, $"[green]${product.Price:F2}[/]");
