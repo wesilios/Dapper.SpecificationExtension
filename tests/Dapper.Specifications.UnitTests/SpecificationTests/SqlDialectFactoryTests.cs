@@ -1,5 +1,5 @@
 ﻿using Dapper.Specifications.Dialects;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests.SpecificationTests;
@@ -13,9 +13,9 @@ public class SqlDialectFactoryTests
         var dialect = SqlDialect.SqlServer;
 
         // Assert
-        dialect.Should().NotBeNull();
-        dialect.Should().BeOfType<SqlServerDialect>();
-        dialect.Name.Should().Be("SQLServer");
+        dialect.ShouldNotBeNull();
+        dialect.ShouldBeOfType<SqlServerDialect>();
+        dialect.Name.ShouldBe("SQLServer");
     }
 
     [Fact]
@@ -25,9 +25,9 @@ public class SqlDialectFactoryTests
         var dialect = SqlDialect.PostgreSql;
 
         // Assert
-        dialect.Should().NotBeNull();
-        dialect.Should().BeOfType<PgSqlDialect>();
-        dialect.Name.Should().Be("PostgreSQL");
+        dialect.ShouldNotBeNull();
+        dialect.ShouldBeOfType<PgSqlDialect>();
+        dialect.Name.ShouldBe("PostgreSQL");
     }
 
     [Fact]
@@ -37,9 +37,9 @@ public class SqlDialectFactoryTests
         var dialect = SqlDialect.MySql;
 
         // Assert
-        dialect.Should().NotBeNull();
-        dialect.Should().BeOfType<MySqlDialect>();
-        dialect.Name.Should().Be("MySQL");
+        dialect.ShouldNotBeNull();
+        dialect.ShouldBeOfType<MySqlDialect>();
+        dialect.Name.ShouldBe("MySQL");
     }
 
     [Fact]
@@ -49,9 +49,9 @@ public class SqlDialectFactoryTests
         var dialect = SqlDialect.Sqlite;
 
         // Assert
-        dialect.Should().NotBeNull();
-        dialect.Should().BeOfType<SqliteDialect>();
-        dialect.Name.Should().Be("SQLite");
+        dialect.ShouldNotBeNull();
+        dialect.ShouldBeOfType<SqliteDialect>();
+        dialect.Name.ShouldBe("SQLite");
     }
 
     [Fact]
@@ -62,17 +62,16 @@ public class SqlDialectFactoryTests
         var dialect2 = SqlDialect.SqlServer;
 
         // Assert
-        dialect1.Should().BeSameAs(dialect2);
+        dialect1.ShouldBeSameAs(dialect2);
     }
 
     [Fact]
     public void AllDialects_ShouldHaveAtSymbolParameterPrefix()
     {
         // Act & Assert
-        SqlDialect.SqlServer.ParameterPrefix.Should().Be("@");
-        SqlDialect.PostgreSql.ParameterPrefix.Should().Be("@");
-        SqlDialect.MySql.ParameterPrefix.Should().Be("@");
-        SqlDialect.Sqlite.ParameterPrefix.Should().Be("@");
+        SqlDialect.SqlServer.ParameterPrefix.ShouldBe("@");
+        SqlDialect.PostgreSql.ParameterPrefix.ShouldBe("@");
+        SqlDialect.MySql.ParameterPrefix.ShouldBe("@");
+        SqlDialect.Sqlite.ParameterPrefix.ShouldBe("@");
     }
 }
-

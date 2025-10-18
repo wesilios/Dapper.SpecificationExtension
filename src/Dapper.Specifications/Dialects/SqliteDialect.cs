@@ -12,4 +12,10 @@ public class SqliteDialect : ISqlDialect
         => $"SELECT EXISTS ({innerQuery})";
 
     public string FormatBoolean(bool value) => value ? "1" : "0";
+
+    public string QuoteIdentifier(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return $"\"{name.Replace("\"", "\"\"")}\"";
+    }
 }

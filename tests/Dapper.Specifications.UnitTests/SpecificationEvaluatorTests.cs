@@ -1,7 +1,7 @@
 ﻿using Dapper.Specifications.Dialects;
 using Dapper.Specifications.Evaluators;
 using Dapper.Specifications.Specifications;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests;
@@ -18,10 +18,10 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        sql.Should().Contain("FROM Users");
-        sql.Should().Contain("WHERE IsActive = 1");
-        sql.Should().Contain("ORDER BY Id ASC");
+        sql.ShouldContain("OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
+        sql.ShouldContain("FROM Users");
+        sql.ShouldContain("WHERE IsActive = 1");
+        sql.ShouldContain("ORDER BY Id ASC");
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.PostgreSql);
 
         // Assert
-        sql.Should().Contain("LIMIT 10 OFFSET 0");
-        sql.Should().Contain("FROM Users");
+        sql.ShouldContain("LIMIT 10 OFFSET 0");
+        sql.ShouldContain("FROM Users");
     }
 
     [Fact]
@@ -48,8 +48,8 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.MySql);
 
         // Assert
-        sql.Should().Contain("LIMIT 0, 10");
-        sql.Should().Contain("FROM Users");
+        sql.ShouldContain("LIMIT 0, 10");
+        sql.ShouldContain("FROM Users");
     }
 
     [Fact]
@@ -62,17 +62,17 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.Sqlite);
 
         // Assert
-        sql.Should().Contain("LIMIT 10 OFFSET 0");
-        sql.Should().Contain("FROM Users");
+        sql.ShouldContain("LIMIT 10 OFFSET 0");
+        sql.ShouldContain("FROM Users");
     }
 
     [Fact]
     public void Build_WithNullSpec_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        Action act = () => SpecificationEvaluator.Build<object>(null!, SqlDialect.SqlServer);
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("spec");
+        var ex = Should.Throw<ArgumentNullException>(() =>
+            SpecificationEvaluator.Build<object>(null!, SqlDialect.SqlServer));
+        ex.ParamName.ShouldBe("spec");
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("SELECT Id, Name, Email");
-        sql.Should().NotContain("SELECT *");
+        sql.ShouldContain("SELECT Id, Name, Email");
+        sql.ShouldNotContain("SELECT *");
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("INNER JOIN Orders ON Users.Id = Orders.UserId");
+        sql.ShouldContain("INNER JOIN Orders ON Users.Id = Orders.UserId");
     }
 
     [Fact]
@@ -112,8 +112,8 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().NotContain("WHERE");
-        sql.Should().Contain("FROM Users");
+        sql.ShouldNotContain("WHERE");
+        sql.ShouldContain("FROM Users");
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().NotContain("ORDER BY");
+        sql.ShouldNotContain("ORDER BY");
     }
 
     [Fact]
@@ -139,8 +139,8 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().NotContain("OFFSET");
-        sql.Should().NotContain("FETCH NEXT");
+        sql.ShouldNotContain("OFFSET");
+        sql.ShouldNotContain("FETCH NEXT");
     }
 
     [Fact]
@@ -153,9 +153,9 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer, isCount: true);
 
         // Assert
-        sql.Should().Contain("SELECT COUNT(*)");
-        sql.Should().NotContain("ORDER BY");
-        sql.Should().NotContain("OFFSET");
+        sql.ShouldContain("SELECT COUNT(*)");
+        sql.ShouldNotContain("ORDER BY");
+        sql.ShouldNotContain("OFFSET");
     }
 
     [Fact]
@@ -168,9 +168,9 @@ public class SpecificationEvaluatorTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer, isExists: true);
 
         // Assert
-        sql.Should().Contain("SELECT CASE WHEN EXISTS");
-        sql.Should().Contain("SELECT 1 FROM Users");
-        sql.Should().NotContain("ORDER BY");
+        sql.ShouldContain("SELECT CASE WHEN EXISTS");
+        sql.ShouldContain("SELECT 1 FROM Users");
+        sql.ShouldNotContain("ORDER BY");
     }
 
     private class TestSpecification : Specification<object>

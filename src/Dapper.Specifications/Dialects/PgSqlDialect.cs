@@ -9,7 +9,13 @@ public class PgSqlDialect : ISqlDialect
         => $" LIMIT {take} OFFSET {skip}";
 
     public string FormatExistsWrapper(string innerQuery)
-        => $"SELECT CASE WHEN EXISTS ({innerQuery}) THEN TRUE ELSE FALSE END";
+        => $"SELECT CASE WHEN EXISTS ({innerQuery}) THEN 1 ELSE 0 END";
 
     public string FormatBoolean(bool value) => value ? "TRUE" : "FALSE";
+
+    public string QuoteIdentifier(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return $"\"{name.Replace("\"", "\"\"")}\"";
+    }
 }

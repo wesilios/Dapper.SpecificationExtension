@@ -1,7 +1,7 @@
 ﻿using Dapper.Specifications.Dialects;
 using Dapper.Specifications.Evaluators;
 using Dapper.Specifications.Specifications;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests;
@@ -22,7 +22,7 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain($"OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY");
+        sql.ShouldContain($"OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY");
     }
 
     [Fact]
@@ -35,13 +35,13 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, parameters) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("SELECT u.Id, u.Name, u.Email, o.OrderDate");
-        sql.Should().Contain("FROM Users u");
-        sql.Should().Contain("INNER JOIN Orders o ON u.Id = o.UserId");
-        sql.Should().Contain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
-        sql.Should().Contain("ORDER BY u.Name ASC, u.CreatedDate DESC");
-        sql.Should().Contain("OFFSET 0 ROWS FETCH NEXT 25 ROWS ONLY");
-        parameters.Should().NotBeNull();
+        sql.ShouldContain("SELECT u.Id, u.Name, u.Email, o.OrderDate");
+        sql.ShouldContain("FROM Users u");
+        sql.ShouldContain("INNER JOIN Orders o ON u.Id = o.UserId");
+        sql.ShouldContain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
+        sql.ShouldContain("ORDER BY u.Name ASC, u.CreatedDate DESC");
+        sql.ShouldContain("OFFSET 0 ROWS FETCH NEXT 25 ROWS ONLY");
+        parameters.ShouldNotBeNull();
     }
 
     [Fact]
@@ -54,12 +54,12 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer, isCount: true);
 
         // Assert
-        sql.Should().Contain("SELECT COUNT(*)");
-        sql.Should().Contain("FROM Users u");
-        sql.Should().Contain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
-        sql.Should().NotContain("ORDER BY");
-        sql.Should().NotContain("OFFSET");
-        sql.Should().NotContain("FETCH NEXT");
+        sql.ShouldContain("SELECT COUNT(*)");
+        sql.ShouldContain("FROM Users u");
+        sql.ShouldContain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
+        sql.ShouldNotContain("ORDER BY");
+        sql.ShouldNotContain("OFFSET");
+        sql.ShouldNotContain("FETCH NEXT");
     }
 
     [Fact]
@@ -72,11 +72,11 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer, isExists: true);
 
         // Assert
-        sql.Should().Contain("SELECT CASE WHEN EXISTS");
-        sql.Should().Contain("SELECT 1 FROM Users u");
-        sql.Should().Contain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
-        sql.Should().NotContain("ORDER BY");
-        sql.Should().NotContain("OFFSET");
+        sql.ShouldContain("SELECT CASE WHEN EXISTS");
+        sql.ShouldContain("SELECT 1 FROM Users u");
+        sql.ShouldContain("WHERE u.IsActive = 1 AND u.Age > @MinAge");
+        sql.ShouldNotContain("ORDER BY");
+        sql.ShouldNotContain("OFFSET");
     }
 
     [Fact]
@@ -89,9 +89,9 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("INNER JOIN Orders o ON u.Id = o.UserId");
-        sql.Should().Contain("LEFT JOIN Products p ON o.ProductId = p.Id");
-        sql.Should().Contain("LEFT JOIN Categories c ON p.CategoryId = c.Id");
+        sql.ShouldContain("INNER JOIN Orders o ON u.Id = o.UserId");
+        sql.ShouldContain("LEFT JOIN Products p ON o.ProductId = p.Id");
+        sql.ShouldContain("LEFT JOIN Categories c ON p.CategoryId = c.Id");
     }
 
     [Fact]
@@ -104,8 +104,8 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, parameters) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("WHERE Age > @MinAge AND Age < @MaxAge AND Name LIKE @NamePattern");
-        parameters.Should().NotBeNull();
+        sql.ShouldContain("WHERE Age > @MinAge AND Age < @MaxAge AND Name LIKE @NamePattern");
+        parameters.ShouldNotBeNull();
     }
 
     [Theory]
@@ -118,7 +118,7 @@ public class SpecificationEvaluatorIntegrationTests
         // Arrange
         var spec = new UserSpecification();
         spec.SetPaging(10, 20);
-        
+
         ISqlDialect dialect = dialectName switch
         {
             "SqlServer" => SqlDialect.SqlServer,
@@ -132,21 +132,21 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, dialect);
 
         // Assert
-        sql.Should().NotBeNullOrEmpty();
-        sql.Should().Contain("FROM Users");
-        
+        sql.ShouldNotBeNullOrEmpty();
+        sql.ShouldContain("FROM Users");
+
         // Verify dialect-specific pagination
         switch (dialectName)
         {
             case "SqlServer":
-                sql.Should().Contain("OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY");
+                sql.ShouldContain("OFFSET 10 ROWS FETCH NEXT 20 ROWS ONLY");
                 break;
             case "PostgreSQL":
             case "SQLite":
-                sql.Should().Contain("LIMIT 20 OFFSET 10");
+                sql.ShouldContain("LIMIT 20 OFFSET 10");
                 break;
             case "MySQL":
-                sql.Should().Contain("LIMIT 10, 20");
+                sql.ShouldContain("LIMIT 10, 20");
                 break;
         }
     }
@@ -161,7 +161,7 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Be("SELECT * FROM Users");
+        sql.ShouldBe("SELECT * FROM Users");
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class SpecificationEvaluatorIntegrationTests
         var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
 
         // Assert
-        sql.Should().Contain("SELECT *");
+        sql.ShouldContain("SELECT *");
     }
 
     private class UserSpecification : Specification<User>
@@ -198,7 +198,7 @@ public class SpecificationEvaluatorIntegrationTests
             OrderBy = "u.Name ASC, u.CreatedDate DESC";
             Skip = 0;
             Take = 25;
-            Parameters = new { MinAge = 18 };
+            Parameters = new DynamicParameters(new { MinAge = 18 });
         }
     }
 
@@ -245,4 +245,3 @@ public class SpecificationEvaluatorIntegrationTests
         public DateTime CreatedDate { get; set; }
     }
 }
-

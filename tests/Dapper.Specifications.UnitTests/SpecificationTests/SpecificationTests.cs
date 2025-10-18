@@ -1,5 +1,5 @@
 ﻿using Dapper.Specifications.Specifications;
-using FluentAssertions;
+using Shouldly;
 using Xunit;
 
 namespace Dapper.Specifications.UnitTests.SpecificationTests;
@@ -16,7 +16,7 @@ public class SpecificationTests
         spec.AddWhere("Age > 18");
 
         // Assert
-        spec.WhereClause.Should().Be("Age > 18");
+        spec.WhereClause.ShouldBe("Age > 18");
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class SpecificationTests
         spec.AddWhere("IsActive = 1");
 
         // Assert
-        spec.WhereClause.Should().Be("Age > 18 AND IsActive = 1");
+        spec.WhereClause.ShouldBe("Age > 18 AND IsActive = 1");
     }
 
     [Fact]
@@ -43,8 +43,8 @@ public class SpecificationTests
         spec.AddWhere("Age > @MinAge", new { MinAge = 18 });
 
         // Assert
-        spec.WhereClause.Should().Be("Age > @MinAge");
-        spec.Parameters.Should().NotBeNull();
+        spec.WhereClause.ShouldBe("Age > @MinAge");
+        spec.Parameters.ShouldNotBeNull();
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class SpecificationTests
         spec.AddWhere("Name = @Name", new { Name = "John" });
 
         // Assert
-        spec.WhereClause.Should().Be("Age > @MinAge AND Name = @Name");
+        spec.WhereClause.ShouldBe("Age > @MinAge AND Name = @Name");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class SpecificationTests
         spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
 
         // Assert
-        spec.JoinClause.Should().Be(" INNER JOIN Orders ON Users.Id = Orders.UserId");
+        spec.JoinClause.ShouldBe(" INNER JOIN Orders ON Users.Id = Orders.UserId");
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class SpecificationTests
         spec.AddJoin("LEFT JOIN Products ON Orders.ProductId = Products.Id");
 
         // Assert
-        spec.JoinClause.Should().Be(" INNER JOIN Orders ON Users.Id = Orders.UserId LEFT JOIN Products ON Orders.ProductId = Products.Id");
+        spec.JoinClause.ShouldBe(" INNER JOIN Orders ON Users.Id = Orders.UserId LEFT JOIN Products ON Orders.ProductId = Products.Id");
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class SpecificationTests
         spec.AddOrder("Name ASC");
 
         // Assert
-        spec.OrderBy.Should().Be("Name ASC");
+        spec.OrderBy.ShouldBe("Name ASC");
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class SpecificationTests
         spec.AddOrder("Age DESC");
 
         // Assert
-        spec.OrderBy.Should().Be("Name ASC, Age DESC");
+        spec.OrderBy.ShouldBe("Name ASC, Age DESC");
     }
 
     [Fact]
@@ -125,8 +125,8 @@ public class SpecificationTests
         spec.SetPaging(10, 20);
 
         // Assert
-        spec.Skip.Should().Be(10);
-        spec.Take.Should().Be(20);
+        spec.Skip.ShouldBe(10);
+        spec.Take.ShouldBe(20);
     }
 
     [Fact]
@@ -139,8 +139,8 @@ public class SpecificationTests
         spec.SetPaging(0, 50);
 
         // Assert
-        spec.Skip.Should().Be(0);
-        spec.Take.Should().Be(50);
+        spec.Skip.ShouldBe(0);
+        spec.Take.ShouldBe(50);
     }
 
     [Fact]
@@ -150,15 +150,15 @@ public class SpecificationTests
         var spec = new TestSpecification();
 
         // Assert
-        spec.TableName.Should().Be("Users");
-        spec.PrimaryKey.Should().Be("Id");
-        spec.SelectClause.Should().BeEmpty();
-        spec.JoinClause.Should().BeEmpty();
-        spec.WhereClause.Should().BeEmpty();
-        spec.OrderBy.Should().BeEmpty();
-        spec.Skip.Should().BeNull();
-        spec.Take.Should().BeNull();
-        spec.Parameters.Should().NotBeNull();
+        spec.TableName.ShouldBe("Users");
+        spec.PrimaryKey.ShouldBe("Id");
+        spec.SelectClause.ShouldBeEmpty();
+        spec.JoinClause.ShouldBeEmpty();
+        spec.WhereClause.ShouldBeEmpty();
+        spec.OrderBy.ShouldBeEmpty();
+        spec.Skip.ShouldBeNull();
+        spec.Take.ShouldBeNull();
+        spec.Parameters.ShouldNotBeNull();
     }
 
     [Fact]
@@ -168,6 +168,7 @@ public class SpecificationTests
         var spec = new TestSpecification();
 
         // Act
+        spec.SetSelectClause("Id, Name AS Username, Age, IsActive");
         spec.AddWhere("Age > @MinAge", new { MinAge = 18 });
         spec.AddWhere("IsActive = 1");
         spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
@@ -176,11 +177,12 @@ public class SpecificationTests
         spec.SetPaging(0, 10);
 
         // Assert
-        spec.WhereClause.Should().Be("Age > @MinAge AND IsActive = 1");
-        spec.JoinClause.Should().Contain("INNER JOIN Orders");
-        spec.OrderBy.Should().Be("Name ASC, Age DESC");
-        spec.Skip.Should().Be(0);
-        spec.Take.Should().Be(10);
+        spec.SelectClause.ShouldBe("Id, Name AS Username, Age, IsActive");
+        spec.WhereClause.ShouldBe("Age > @MinAge AND IsActive = 1");
+        spec.JoinClause.ShouldContain("INNER JOIN Orders");
+        spec.OrderBy.ShouldBe("Name ASC, Age DESC");
+        spec.Skip.ShouldBe(0);
+        spec.Take.ShouldBe(10);
     }
 
     private class TestSpecification : Specification<User>
@@ -200,4 +202,3 @@ public class SpecificationTests
         public bool IsActive { get; set; }
     }
 }
-
