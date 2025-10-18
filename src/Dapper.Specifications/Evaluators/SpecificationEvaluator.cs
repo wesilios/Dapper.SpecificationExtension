@@ -2,6 +2,7 @@
 using System.Text;
 using Dapper.Specifications.Dialects;
 using Dapper.Specifications.Specifications;
+using static Dapper.Specifications.SqlKeywords;
 
 namespace Dapper.Specifications.Evaluators;
 
@@ -20,143 +21,235 @@ public class SpecificationEvaluator
         ArgumentNullException.ThrowIfNull(dialect);
         ArgumentException.ThrowIfNullOrWhiteSpace(spec.TableName, nameof(spec.TableName));
 
-        var sb = new StringBuilder();
         var allParams = new DynamicParameters(spec.Parameters);
 
+        // Handle special query types first (early returns)
+        if (isCount)
+            return BuildCountQuery(spec, allParams);
+
+        if (isExists)
+            return BuildExistsQuery(spec, dialect, allParams);
+
+        // Build standard SELECT query
+        return BuildSelectQuery(spec, dialect, allParams);
+    }
+
+    /// <summary>
+    /// Builds a COUNT(*) query.
+    /// </summary>
+    private static (string Sql, object Params) BuildCountQuery<T>(ISpecification<T> spec, DynamicParameters allParams)
+    {
+        var sb = new StringBuilder()
+            .Append(Select).Append(' ').Append(CountAll).Append(' ').Append(From).Append(' ')
+            .Append(spec.TableName);
+
+        // Include JOINs and WHERE for accurate count
+        AppendClauseIfNotEmpty(sb, spec.JoinClause);
+        AppendWhereClause(sb, spec.WhereClause);
+
+        return (sb.ToString(), allParams);
+    }
+
+    /// <summary>
+    /// Builds an EXISTS query.
+    /// </summary>
+    private static (string Sql, object Params) BuildExistsQuery<T>(ISpecification<T> spec, ISqlDialect dialect, DynamicParameters allParams)
+    {
+        var inner = new StringBuilder()
+            .Append(SelectOne).Append(' ').Append(From).Append(' ')
+            .Append(spec.TableName);
+
+        AppendClauseIfNotEmpty(inner, spec.JoinClause);
+        AppendWhereClause(inner, spec.WhereClause);
+
+        var wrappedQuery = dialect.FormatExistsWrapper(inner.ToString());
+        return (wrappedQuery, allParams);
+    }
+
+    /// <summary>
+    /// Builds a standard SELECT query with all clauses.
+    /// </summary>
+    private static (string Sql, object Params) BuildSelectQuery<T>(ISpecification<T> spec, ISqlDialect dialect, DynamicParameters allParams)
+    {
+        var sb = new StringBuilder();
+
         // Common Table Expressions (CTEs)
-        if (!isCount && !isExists && spec.CommonTableExpressions.Count > 0)
-        {
-            sb.Append("WITH ");
-            for (var i = 0; i < spec.CommonTableExpressions.Count; i++)
-            {
-                if (i > 0)
-                    sb.Append(", ");
-
-                var (name, cteSpec) = spec.CommonTableExpressions[i];
-                var (cteSql, _) = Build(cteSpec, dialect, false, false);
-                sb.Append(name).Append(" AS (").Append(cteSql).Append(")");
-
-                // Merge CTE parameters
-                foreach (var paramName in cteSpec.Parameters.ParameterNames)
-                {
-                    allParams.Add(paramName, cteSpec.Parameters.Get<object>(paramName));
-                }
-            }
-            sb.Append(" ");
-        }
+        AppendCommonTableExpressions(sb, spec, dialect, allParams);
 
         // SELECT clause
-        if (isCount)
+        AppendSelectClause(sb, spec);
+
+        // FROM clause
+        AppendFromClause(sb, spec, dialect);
+
+        // JOINs, WHERE, GROUP BY, HAVING, ORDER BY
+        AppendClauseIfNotEmpty(sb, spec.JoinClause);
+        AppendWhereClause(sb, spec.WhereClause);
+        AppendGroupByClause(sb, spec.GroupBy);
+        AppendHavingClause(sb, spec.Having);
+
+        // Handle UNION or pagination
+        if (spec.UnionSpecifications.Count > 0)
         {
-            sb.Append("SELECT COUNT(*) FROM ").Append(spec.TableName);
-        }
-        else if (isExists)
-        {
-            // Dialect-specific EXISTS query
-            var inner = new StringBuilder()
-                .Append("SELECT 1 FROM ")
-                .Append(spec.TableName);
-
-            if (!string.IsNullOrWhiteSpace(spec.JoinClause))
-                inner.Append(" ").Append(spec.JoinClause);
-
-            if (!string.IsNullOrWhiteSpace(spec.WhereClause))
-                inner.Append(" WHERE ").Append(spec.WhereClause);
-
-            sb.Append(dialect.FormatExistsWrapper(inner.ToString()));
-            return (sb.ToString(), spec.Parameters);
+            AppendUnionClauses(sb, spec, dialect, allParams);
         }
         else
         {
-            var selectClause = string.IsNullOrWhiteSpace(spec.SelectClause) ? "*" : spec.SelectClause;
-            sb.Append("SELECT ");
-            if (spec.IsDistinct)
-                sb.Append("DISTINCT ");
-            sb.Append(selectClause);
-
-            // FROM clause - either table or subquery
-            if (spec.FromSubquery != null && !string.IsNullOrWhiteSpace(spec.FromSubqueryAlias))
-            {
-                // Build subquery
-                var (subquerySql, _) = Build(spec.FromSubquery, dialect, false, false);
-                sb.Append(" FROM (").Append(subquerySql).Append(") ").Append(spec.FromSubqueryAlias);
-            }
-            else
-            {
-                sb.Append(" FROM ").Append(spec.TableName);
-            }
-        }
-
-        // JOINs
-        if (!string.IsNullOrWhiteSpace(spec.JoinClause))
-            sb.Append(" ").Append(spec.JoinClause);
-
-        // WHERE
-        if (!string.IsNullOrWhiteSpace(spec.WhereClause))
-            sb.Append(" WHERE ").Append(spec.WhereClause);
-
-        // GROUP BY
-        if (!isCount && !isExists && !string.IsNullOrWhiteSpace(spec.GroupBy))
-            sb.Append(" GROUP BY ").Append(spec.GroupBy);
-
-        // HAVING
-        if (!isCount && !isExists && !string.IsNullOrWhiteSpace(spec.Having))
-            sb.Append(" HAVING ").Append(spec.Having);
-
-        // ORDER BY
-        if (!isCount && !isExists && !string.IsNullOrWhiteSpace(spec.OrderBy))
-            sb.Append(" ORDER BY ").Append(spec.OrderBy);
-
-        // Pagination (only if no UNION)
-        if (!isCount && !isExists && spec is { Skip: not null, Take: not null } && spec.UnionSpecifications.Count == 0)
-            sb.Append(dialect.FormatLimitOffset(spec.Skip.Value, spec.Take.Value));
-
-        // UNION/UNION ALL
-        if (!isCount && !isExists && spec.UnionSpecifications.Count > 0)
-        {
-            foreach (var (unionSpec, isUnionAll) in spec.UnionSpecifications)
-            {
-                sb.Append(isUnionAll ? " UNION ALL " : " UNION ");
-
-                // Build the union query (without ORDER BY and pagination)
-                var unionSb = new StringBuilder();
-                var selectClause = string.IsNullOrWhiteSpace(unionSpec.SelectClause) ? "*" : unionSpec.SelectClause;
-                unionSb.Append("SELECT ");
-                if (unionSpec.IsDistinct)
-                    unionSb.Append("DISTINCT ");
-                unionSb.Append(selectClause);
-                unionSb.Append(" FROM ").Append(unionSpec.TableName);
-
-                if (!string.IsNullOrWhiteSpace(unionSpec.JoinClause))
-                    unionSb.Append(" ").Append(unionSpec.JoinClause);
-
-                if (!string.IsNullOrWhiteSpace(unionSpec.WhereClause))
-                    unionSb.Append(" WHERE ").Append(unionSpec.WhereClause);
-
-                if (!string.IsNullOrWhiteSpace(unionSpec.GroupBy))
-                    unionSb.Append(" GROUP BY ").Append(unionSpec.GroupBy);
-
-                if (!string.IsNullOrWhiteSpace(unionSpec.Having))
-                    unionSb.Append(" HAVING ").Append(unionSpec.Having);
-
-                sb.Append(unionSb);
-
-                // Merge parameters from union spec
-                foreach (var paramName in unionSpec.Parameters.ParameterNames)
-                {
-                    allParams.Add(paramName, unionSpec.Parameters.Get<object>(paramName));
-                }
-            }
-
-            // Apply ORDER BY and pagination to the entire UNION result
-            if (!string.IsNullOrWhiteSpace(spec.OrderBy))
-                sb.Append(" ORDER BY ").Append(spec.OrderBy);
-
-            if (spec is { Skip: not null, Take: not null })
-                sb.Append(dialect.FormatLimitOffset(spec.Skip.Value, spec.Take.Value));
+            AppendOrderByClause(sb, spec.OrderBy);
+            AppendPaginationClause(sb, spec, dialect);
         }
 
         return (sb.ToString(), allParams);
+    }
+
+    /// <summary>
+    /// Appends Common Table Expressions (CTEs) to the query.
+    /// </summary>
+    private static void AppendCommonTableExpressions<T>(StringBuilder sb, ISpecification<T> spec, ISqlDialect dialect, DynamicParameters allParams)
+    {
+        if (spec.CommonTableExpressions.Count == 0)
+            return;
+
+        sb.Append("WITH ");
+        for (var i = 0; i < spec.CommonTableExpressions.Count; i++)
+        {
+            if (i > 0)
+                sb.Append(", ");
+
+            var (name, cteSpec) = spec.CommonTableExpressions[i];
+            var (cteSql, _) = Build(cteSpec, dialect, false, false);
+            sb.Append(name).Append(" AS (").Append(cteSql).Append(')');
+
+            // Merge CTE parameters
+            foreach (var paramName in cteSpec.Parameters.ParameterNames)
+            {
+                allParams.Add(paramName, cteSpec.Parameters.Get<object>(paramName));
+            }
+        }
+        sb.Append(' ');
+    }
+
+    /// <summary>
+    /// Appends the SELECT clause.
+    /// </summary>
+    private static void AppendSelectClause<T>(StringBuilder sb, ISpecification<T> spec)
+    {
+        var selectClause = string.IsNullOrWhiteSpace(spec.SelectClause) ? "*" : spec.SelectClause;
+        sb.Append(Select).Append(' ');
+        if (spec.IsDistinct)
+            sb.Append("DISTINCT ");
+        sb.Append(selectClause);
+    }
+
+    /// <summary>
+    /// Appends the FROM clause.
+    /// </summary>
+    private static void AppendFromClause<T>(StringBuilder sb, ISpecification<T> spec, ISqlDialect dialect)
+    {
+        sb.Append(' ').Append(From).Append(' ');
+
+        if (spec.FromSubquery != null && !string.IsNullOrWhiteSpace(spec.FromSubqueryAlias))
+        {
+            var (subquerySql, _) = Build(spec.FromSubquery, dialect, false, false);
+            sb.Append('(').Append(subquerySql).Append(") ").Append(spec.FromSubqueryAlias);
+        }
+        else
+        {
+            sb.Append(spec.TableName);
+        }
+    }
+
+    /// <summary>
+    /// Appends a clause to the query if the value is not empty.
+    /// </summary>
+    private static void AppendClauseIfNotEmpty(StringBuilder sb, string? clause)
+    {
+        if (!string.IsNullOrWhiteSpace(clause))
+            sb.Append(' ').Append(clause);
+    }
+
+    /// <summary>
+    /// Appends a WHERE clause if the condition is not empty.
+    /// </summary>
+    private static void AppendWhereClause(StringBuilder sb, string? whereClause)
+    {
+        if (!string.IsNullOrWhiteSpace(whereClause))
+            sb.Append(' ').Append(Where).Append(' ').Append(whereClause);
+    }
+
+    /// <summary>
+    /// Appends a GROUP BY clause if the grouping is not empty.
+    /// </summary>
+    private static void AppendGroupByClause(StringBuilder sb, string? groupBy)
+    {
+        if (!string.IsNullOrWhiteSpace(groupBy))
+            sb.Append(' ').Append(GroupBy).Append(' ').Append(groupBy);
+    }
+
+    /// <summary>
+    /// Appends a HAVING clause if the condition is not empty.
+    /// </summary>
+    private static void AppendHavingClause(StringBuilder sb, string? having)
+    {
+        if (!string.IsNullOrWhiteSpace(having))
+            sb.Append(' ').Append(Having).Append(' ').Append(having);
+    }
+
+    /// <summary>
+    /// Appends an ORDER BY clause if the ordering is not empty.
+    /// </summary>
+    private static void AppendOrderByClause(StringBuilder sb, string? orderBy)
+    {
+        if (!string.IsNullOrWhiteSpace(orderBy))
+            sb.Append(' ').Append(OrderBy).Append(' ').Append(orderBy);
+    }
+
+    /// <summary>
+    /// Appends pagination (LIMIT/OFFSET) clause if skip and take are specified.
+    /// </summary>
+    private static void AppendPaginationClause<T>(StringBuilder sb, ISpecification<T> spec, ISqlDialect dialect)
+    {
+        if (spec is { Skip: not null, Take: not null })
+            sb.Append(dialect.FormatLimitOffset(spec.Skip.Value, spec.Take.Value));
+    }
+
+    /// <summary>
+    /// Appends UNION/UNION ALL clauses with their ORDER BY and pagination.
+    /// </summary>
+    private static void AppendUnionClauses<T>(StringBuilder sb, ISpecification<T> spec, ISqlDialect dialect, DynamicParameters allParams)
+    {
+        foreach (var (unionSpec, isUnionAll) in spec.UnionSpecifications)
+        {
+            sb.Append(isUnionAll ? " UNION ALL " : " UNION ");
+            AppendUnionQuery(sb, unionSpec);
+
+            // Merge parameters from union spec
+            foreach (var paramName in unionSpec.Parameters.ParameterNames)
+            {
+                allParams.Add(paramName, unionSpec.Parameters.Get<object>(paramName));
+            }
+        }
+
+        // Apply ORDER BY and pagination to the entire UNION result
+        AppendOrderByClause(sb, spec.OrderBy);
+        AppendPaginationClause(sb, spec, dialect);
+    }
+
+    /// <summary>
+    /// Appends a single UNION query (without ORDER BY and pagination).
+    /// </summary>
+    private static void AppendUnionQuery<T>(StringBuilder sb, ISpecification<T> unionSpec)
+    {
+        var selectClause = string.IsNullOrWhiteSpace(unionSpec.SelectClause) ? "*" : unionSpec.SelectClause;
+        sb.Append(Select).Append(' ');
+        if (unionSpec.IsDistinct)
+            sb.Append("DISTINCT ");
+        sb.Append(selectClause).Append(' ').Append(From).Append(' ').Append(unionSpec.TableName);
+
+        AppendClauseIfNotEmpty(sb, unionSpec.JoinClause);
+        AppendWhereClause(sb, unionSpec.WhereClause);
+        AppendGroupByClause(sb, unionSpec.GroupBy);
+        AppendHavingClause(sb, unionSpec.Having);
     }
 
     /// <summary>
