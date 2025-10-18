@@ -21,6 +21,29 @@ public class SpecificationEvaluator
         ArgumentException.ThrowIfNullOrWhiteSpace(spec.TableName, nameof(spec.TableName));
 
         var sb = new StringBuilder();
+        var allParams = new DynamicParameters(spec.Parameters);
+
+        // Common Table Expressions (CTEs)
+        if (!isCount && !isExists && spec.CommonTableExpressions.Count > 0)
+        {
+            sb.Append("WITH ");
+            for (var i = 0; i < spec.CommonTableExpressions.Count; i++)
+            {
+                if (i > 0)
+                    sb.Append(", ");
+
+                var (name, cteSpec) = spec.CommonTableExpressions[i];
+                var (cteSql, _) = Build(cteSpec, dialect, false, false);
+                sb.Append(name).Append(" AS (").Append(cteSql).Append(")");
+
+                // Merge CTE parameters
+                foreach (var paramName in cteSpec.Parameters.ParameterNames)
+                {
+                    allParams.Add(paramName, cteSpec.Parameters.Get<object>(paramName));
+                }
+            }
+            sb.Append(" ");
+        }
 
         // SELECT clause
         if (isCount)
@@ -46,8 +69,22 @@ public class SpecificationEvaluator
         else
         {
             var selectClause = string.IsNullOrWhiteSpace(spec.SelectClause) ? "*" : spec.SelectClause;
-            sb.Append("SELECT ").Append(selectClause);
-            sb.Append(" FROM ").Append(spec.TableName);
+            sb.Append("SELECT ");
+            if (spec.IsDistinct)
+                sb.Append("DISTINCT ");
+            sb.Append(selectClause);
+
+            // FROM clause - either table or subquery
+            if (spec.FromSubquery != null && !string.IsNullOrWhiteSpace(spec.FromSubqueryAlias))
+            {
+                // Build subquery
+                var (subquerySql, _) = Build(spec.FromSubquery, dialect, false, false);
+                sb.Append(" FROM (").Append(subquerySql).Append(") ").Append(spec.FromSubqueryAlias);
+            }
+            else
+            {
+                sb.Append(" FROM ").Append(spec.TableName);
+            }
         }
 
         // JOINs
@@ -70,11 +107,56 @@ public class SpecificationEvaluator
         if (!isCount && !isExists && !string.IsNullOrWhiteSpace(spec.OrderBy))
             sb.Append(" ORDER BY ").Append(spec.OrderBy);
 
-        // Pagination
-        if (!isCount && !isExists && spec is { Skip: not null, Take: not null })
+        // Pagination (only if no UNION)
+        if (!isCount && !isExists && spec is { Skip: not null, Take: not null } && spec.UnionSpecifications.Count == 0)
             sb.Append(dialect.FormatLimitOffset(spec.Skip.Value, spec.Take.Value));
 
-        return (sb.ToString(), spec.Parameters);
+        // UNION/UNION ALL
+        if (!isCount && !isExists && spec.UnionSpecifications.Count > 0)
+        {
+            foreach (var (unionSpec, isUnionAll) in spec.UnionSpecifications)
+            {
+                sb.Append(isUnionAll ? " UNION ALL " : " UNION ");
+
+                // Build the union query (without ORDER BY and pagination)
+                var unionSb = new StringBuilder();
+                var selectClause = string.IsNullOrWhiteSpace(unionSpec.SelectClause) ? "*" : unionSpec.SelectClause;
+                unionSb.Append("SELECT ");
+                if (unionSpec.IsDistinct)
+                    unionSb.Append("DISTINCT ");
+                unionSb.Append(selectClause);
+                unionSb.Append(" FROM ").Append(unionSpec.TableName);
+
+                if (!string.IsNullOrWhiteSpace(unionSpec.JoinClause))
+                    unionSb.Append(" ").Append(unionSpec.JoinClause);
+
+                if (!string.IsNullOrWhiteSpace(unionSpec.WhereClause))
+                    unionSb.Append(" WHERE ").Append(unionSpec.WhereClause);
+
+                if (!string.IsNullOrWhiteSpace(unionSpec.GroupBy))
+                    unionSb.Append(" GROUP BY ").Append(unionSpec.GroupBy);
+
+                if (!string.IsNullOrWhiteSpace(unionSpec.Having))
+                    unionSb.Append(" HAVING ").Append(unionSpec.Having);
+
+                sb.Append(unionSb);
+
+                // Merge parameters from union spec
+                foreach (var paramName in unionSpec.Parameters.ParameterNames)
+                {
+                    allParams.Add(paramName, unionSpec.Parameters.Get<object>(paramName));
+                }
+            }
+
+            // Apply ORDER BY and pagination to the entire UNION result
+            if (!string.IsNullOrWhiteSpace(spec.OrderBy))
+                sb.Append(" ORDER BY ").Append(spec.OrderBy);
+
+            if (spec is { Skip: not null, Take: not null })
+                sb.Append(dialect.FormatLimitOffset(spec.Skip.Value, spec.Take.Value));
+        }
+
+        return (sb.ToString(), allParams);
     }
 
     /// <summary>

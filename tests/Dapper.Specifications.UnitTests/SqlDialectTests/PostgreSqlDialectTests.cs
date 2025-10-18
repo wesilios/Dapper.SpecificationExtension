@@ -37,8 +37,8 @@ public class PostgreSqlDialectTests
     public void FormatLimitOffset_ShouldReturn_LimitOffset_Syntax()
     {
         // Arrange
-        int skip = 10;
-        int take = 20;
+        var skip = 10;
+        var take = 20;
 
         // Act
         var result = _dialect.FormatLimitOffset(skip, take);
@@ -51,8 +51,8 @@ public class PostgreSqlDialectTests
     public void FormatLimitOffset_WithZeroSkip_ShouldReturn_CorrectSyntax()
     {
         // Arrange
-        int skip = 0;
-        int take = 50;
+        var skip = 0;
+        var take = 50;
 
         // Act
         var result = _dialect.FormatLimitOffset(skip, take);

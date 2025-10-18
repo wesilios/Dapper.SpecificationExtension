@@ -235,4 +235,129 @@ public class SpecificationEvaluatorTests
             OrderBy = "Id ASC";
         }
     }
+
+    #region DISTINCT Tests
+
+    [Fact]
+    public void Build_WithDistinct_ShouldIncludeDistinctKeyword()
+    {
+        // Arrange
+        var spec = new TestSpecification();
+        spec.SetDistinct();
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("SELECT DISTINCT");
+    }
+
+    #endregion
+
+    #region UNION Tests
+
+    [Fact]
+    public void Build_WithUnion_ShouldGenerateUnionQuery()
+    {
+        // Arrange
+        var spec1 = new TestSpecification();
+        var spec2 = new TestSpecification();
+        spec2.AddWhere("IsActive = 0");
+        spec1.AddUnion(spec2);
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec1, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("UNION");
+        sql.ShouldNotContain("UNION ALL");
+        sql.ShouldContain("IsActive = 1");
+        sql.ShouldContain("IsActive = 0");
+    }
+
+    [Fact]
+    public void Build_WithUnionAll_ShouldGenerateUnionAllQuery()
+    {
+        // Arrange
+        var spec1 = new TestSpecification();
+        var spec2 = new TestSpecification();
+        spec2.AddWhere("IsActive = 0");
+        spec1.AddUnionAll(spec2);
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec1, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("UNION ALL");
+    }
+
+    #endregion
+
+    #region Subquery Tests
+
+    [Fact]
+    public void Build_WithFromSubquery_ShouldGenerateSubqueryInFromClause()
+    {
+        // Arrange
+        var subquery = new TestSpecification();
+        subquery.SetSelectClause("Id, Name");
+
+        var spec = new TestSpecification();
+        spec.SetFromSubquery(subquery, "sub");
+        spec.AddWhere("sub.Id > 10");
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("FROM (");
+        sql.ShouldContain(") sub");
+        sql.ShouldContain("sub.Id > 10");
+    }
+
+    #endregion
+
+    #region CTE Tests
+
+    [Fact]
+    public void Build_WithCTE_ShouldGenerateWithClause()
+    {
+        // Arrange
+        var cteSpec = new TestSpecification();
+        cteSpec.SetSelectClause("Id, Name");
+
+        var spec = new TestSpecification();
+        spec.AddCommonTableExpression("MyCTE", cteSpec);
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("WITH MyCTE AS (");
+        sql.ShouldContain(")");
+    }
+
+    [Fact]
+    public void Build_WithMultipleCTEs_ShouldGenerateMultipleWithClauses()
+    {
+        // Arrange
+        var cte1 = new TestSpecification();
+        cte1.SetSelectClause("Id");
+
+        var cte2 = new TestSpecification();
+        cte2.SetSelectClause("Name");
+
+        var spec = new TestSpecification();
+        spec.AddCommonTableExpression("CTE1", cte1);
+        spec.AddCommonTableExpression("CTE2", cte2);
+
+        // Act
+        var (sql, _) = SpecificationEvaluator.Build(spec, SqlDialect.SqlServer);
+
+        // Assert
+        sql.ShouldContain("WITH CTE1 AS (");
+        sql.ShouldContain(", CTE2 AS (");
+    }
+
+    #endregion
 }
