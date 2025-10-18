@@ -12,4 +12,10 @@ public class SqlServerDialect : ISqlDialect
         => $"SELECT CASE WHEN EXISTS ({innerQuery}) THEN 1 ELSE 0 END";
 
     public string FormatBoolean(bool value) => value ? "1" : "0";
+
+    public string QuoteIdentifier(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return $"[{name.Replace("]", "]]")}]";
+    }
 }

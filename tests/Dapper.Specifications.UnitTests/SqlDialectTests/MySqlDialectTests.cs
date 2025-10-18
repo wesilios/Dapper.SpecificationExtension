@@ -93,4 +93,40 @@ public class MySqlDialectTests
         // Assert
         result.ShouldBe("0");
     }
+
+    [Fact]
+    public void QuoteIdentifier_ShouldReturnQuotedName()
+    {
+        // Act
+        var result = _dialect.QuoteIdentifier("TableName");
+
+        // Assert
+        result.ShouldBe("`TableName`");
+    }
+
+    [Fact]
+    public void QuoteIdentifier_WithBacktick_ShouldEscapeBacktick()
+    {
+        // Act
+        var result = _dialect.QuoteIdentifier("Table`Name");
+
+        // Assert
+        result.ShouldBe("`Table``Name`");
+    }
+
+    [Fact]
+    public void QuoteIdentifier_WithNull_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var ex = Should.Throw<ArgumentException>(() => _dialect.QuoteIdentifier(null!));
+        ex.ParamName.ShouldBe("name");
+    }
+
+    [Fact]
+    public void QuoteIdentifier_WithEmptyString_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var ex = Should.Throw<ArgumentException>(() => _dialect.QuoteIdentifier(""));
+        ex.ParamName.ShouldBe("name");
+    }
 }

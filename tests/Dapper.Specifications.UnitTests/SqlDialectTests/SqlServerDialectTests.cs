@@ -95,7 +95,7 @@ public class SqlServerDialectTests
     }
 
     [Fact]
-    public void QuoteIdentifier_ShouldReturnUnquotedName()
+    public void QuoteIdentifier_ShouldReturnQuotedName()
     {
         // Arrange
         ISqlDialect dialect = _dialect;
@@ -104,6 +104,19 @@ public class SqlServerDialectTests
         var result = dialect.QuoteIdentifier("TableName");
 
         // Assert
-        result.ShouldBe("TableName");
+        result.ShouldBe("[TableName]");
+    }
+
+    [Fact]
+    public void QuoteIdentifier_WithBrackets_ShouldEscapeBrackets()
+    {
+        // Arrange
+        ISqlDialect dialect = _dialect;
+
+        // Act
+        var result = dialect.QuoteIdentifier("Table]Name");
+
+        // Assert
+        result.ShouldBe("[Table]]Name]");
     }
 }

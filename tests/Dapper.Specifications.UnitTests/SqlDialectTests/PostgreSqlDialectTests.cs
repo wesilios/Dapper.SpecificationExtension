@@ -62,7 +62,7 @@ public class PostgreSqlDialectTests
     }
 
     [Fact]
-    public void FormatExistsWrapper_ShouldReturn_CaseWhenExists_WithBoolean()
+    public void FormatExistsWrapper_ShouldReturn_CaseWhenExists_WithInteger()
     {
         // Arrange
         var innerQuery = "SELECT 1 FROM Users WHERE IsActive = 1";
@@ -71,7 +71,7 @@ public class PostgreSqlDialectTests
         var result = _dialect.FormatExistsWrapper(innerQuery);
 
         // Assert
-        result.ShouldBe("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN TRUE ELSE FALSE END");
+        result.ShouldBe("SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE IsActive = 1) THEN 1 ELSE 0 END");
     }
 
     [Fact]
