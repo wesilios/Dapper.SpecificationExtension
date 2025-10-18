@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specifications.UnitT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specifications.IntegrationTests", "tests\Dapper.Specifications.IntegrationTests\Dapper.Specifications.IntegrationTests.csproj", "{D9FDDE88-49F2-4EB9-B371-53C6D98FE0B9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{1FD64031-40C4-4D4E-A5AD-A0D16779AF56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Specifications.Examples", "examples\Dapper.Specifications.Examples\Dapper.Specifications.Examples.csproj", "{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,7 @@ Global
 		{35FCCB0E-C951-4C28-A64A-00CD645E7F70} = {D4D1DA71-D5F7-4D36-AC32-F602CBAC8735}
 		{50F65BCE-DFD8-4C6C-B7E5-9BA7D96751F6} = {B0FEE1F4-191C-4293-92DA-0AD5FBF797EF}
 		{D9FDDE88-49F2-4EB9-B371-53C6D98FE0B9} = {B0FEE1F4-191C-4293-92DA-0AD5FBF797EF}
+		{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F} = {1FD64031-40C4-4D4E-A5AD-A0D16779AF56}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{35FCCB0E-C951-4C28-A64A-00CD645E7F70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -33,5 +38,9 @@ Global
 		{D9FDDE88-49F2-4EB9-B371-53C6D98FE0B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9FDDE88-49F2-4EB9-B371-53C6D98FE0B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9FDDE88-49F2-4EB9-B371-53C6D98FE0B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FE8E9A2-31E7-48EE-8A3E-A81A3A7D279F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
