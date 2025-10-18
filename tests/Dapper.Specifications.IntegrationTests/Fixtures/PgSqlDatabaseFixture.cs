@@ -9,16 +9,20 @@ public class PgSqlDatabaseFixture : DatabaseFixture
         Container = new ContainerBuilder()
             .WithImage("postgres:16-alpine")
             .WithName("test-postgres-dapper")
-            .WithPortBinding(5432, 5432)
+            .WithPortBinding(5432, true)
             .WithEnvironment("POSTGRES_PASSWORD", "password")
             .WithWaitStrategy(Wait.ForUnixContainer()
-                .UntilInternalTcpPortIsAvailable(5432)
-                .UntilCommandIsCompleted("pg_isready -U postgres"))
+                .UntilInternalTcpPortIsAvailable(5432))
             .Build();
 
         await Container.StartAsync();
 
-        ConnectionString = $"Host=localhost;Port=5432;Username=postgres;Password=password;Database=postgres";
+        // Get the mapped port
+        var port = Container.GetMappedPublicPort(5432);
+        ConnectionString = $"Host=localhost;Port={port};Username=postgres;Password=password;Database=postgres;";
+
+        // Wait a bit for PostgreSQL to be fully ready
+        await Task.Delay(3000);
     }
 
     public override async Task DisposeAsync()
