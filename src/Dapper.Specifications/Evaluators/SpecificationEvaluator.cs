@@ -1,10 +1,4 @@
-﻿using System.Data;
-using System.Text;
-using Dapper.Specifications.Dialects;
-using Dapper.Specifications.Specifications;
-using static Dapper.Specifications.SqlKeywords;
-
-namespace Dapper.Specifications.Evaluators;
+﻿namespace Dapper.Specifications.Evaluators;
 
 public class SpecificationEvaluator
 {

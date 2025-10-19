@@ -97,9 +97,16 @@ var spec = new ProductSpecification()
 
 ```csharp
 var spec = new ProductSpecification()
-    .AddJoin("INNER JOIN categories c ON p.category_id = c.category_id")
-    .AddJoin("LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id")
+    .AddInnerJoin("categories c ON p.category_id = c.category_id")
+    .AddLeftJoin("suppliers s ON p.supplier_id = s.supplier_id")
     .AddWhere("c.name = @CategoryName", new { CategoryName = "Electronics" });
+
+// Supported join types:
+// .AddInnerJoin(clause)  - INNER JOIN
+// .AddLeftJoin(clause)   - LEFT JOIN (LEFT OUTER JOIN)
+// .AddRightJoin(clause)  - RIGHT JOIN (RIGHT OUTER JOIN)
+// .AddFullJoin(clause)   - FULL JOIN (FULL OUTER JOIN)
+// .AddCrossJoin(clause)  - CROSS JOIN
 ```
 
 #### ORDER BY
@@ -252,7 +259,7 @@ public class ProductSpecification : Specification<Product>
 // Build complex query
 var spec = new ProductSpecification()
     .SetSelectClause("p.*, c.name as CategoryName")
-    .AddJoin("INNER JOIN categories c ON p.category_id = c.category_id")
+    .AddInnerJoin("categories c ON p.category_id = c.category_id")
     .AddWhere("p.price BETWEEN @MinPrice AND @MaxPrice", new { MinPrice = 100, MaxPrice = 500 })
     .AddWhere("p.stock > @MinStock", new { MinStock = 0 })
     .AddWhereOr("p.featured = @Featured", new { Featured = true })

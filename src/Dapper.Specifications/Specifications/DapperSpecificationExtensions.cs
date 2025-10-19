@@ -1,6 +1,4 @@
-﻿using System.Data;
-using Dapper.Specifications.Dialects;
-using Dapper.Specifications.Evaluators;
+﻿using Dapper.Specifications.Evaluators;
 
 namespace Dapper.Specifications.Specifications;
 

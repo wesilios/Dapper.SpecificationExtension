@@ -73,35 +73,35 @@ public class SpecificationValidationTests
     }
 
     [Fact]
-    public void AddJoin_WithNull_ShouldThrowArgumentException()
+    public void AddInnerJoin_WithNull_ShouldThrowArgumentException()
     {
         // Arrange
         var spec = new TestSpecification();
 
         // Act & Assert
-        var ex = Should.Throw<ArgumentException>(() => spec.AddJoin(null!));
+        var ex = Should.Throw<ArgumentException>(() => spec.AddInnerJoin(null!));
         ex.ParamName.ShouldBe("clause");
     }
 
     [Fact]
-    public void AddJoin_WithEmptyString_ShouldThrowArgumentException()
+    public void AddInnerJoin_WithEmptyString_ShouldThrowArgumentException()
     {
         // Arrange
         var spec = new TestSpecification();
 
         // Act & Assert
-        var ex = Should.Throw<ArgumentException>(() => spec.AddJoin(""));
+        var ex = Should.Throw<ArgumentException>(() => spec.AddInnerJoin(""));
         ex.ParamName.ShouldBe("clause");
     }
 
     [Fact]
-    public void AddJoin_WithWhitespace_ShouldThrowArgumentException()
+    public void AddInnerJoin_WithWhitespace_ShouldThrowArgumentException()
     {
         // Arrange
         var spec = new TestSpecification();
 
         // Act & Assert
-        var ex = Should.Throw<ArgumentException>(() => spec.AddJoin("   "));
+        var ex = Should.Throw<ArgumentException>(() => spec.AddInnerJoin("   "));
         ex.ParamName.ShouldBe("clause");
     }
 

@@ -208,9 +208,9 @@ public class SpecificationEvaluatorIntegrationTests
         {
             TableName = "Users u";
             PrimaryKey = "Id";
-            AddJoin("INNER JOIN Orders o ON u.Id = o.UserId");
-            AddJoin("LEFT JOIN Products p ON o.ProductId = p.Id");
-            AddJoin("LEFT JOIN Categories c ON p.CategoryId = c.Id");
+            AddInnerJoin("Orders o ON u.Id = o.UserId");
+            AddLeftJoin("Products p ON o.ProductId = p.Id");
+            AddLeftJoin("Categories c ON p.CategoryId = c.Id");
         }
     }
 

@@ -104,5 +104,30 @@ public static class SqlKeywords
     /// Comma character for SQL formatting
     /// </summary>
     public const string Comma = ",";
+
+    /// <summary>
+    /// INNER JOIN - Returns only rows that have matching values in both tables.
+    /// </summary>
+    public const string InnerJoin = "INNER JOIN";
+
+    /// <summary>
+    /// LEFT JOIN (LEFT OUTER JOIN) - Returns all rows from the left table, and the matching rows from the right table.
+    /// </summary>
+    public const string LeftJoin = "LEFT JOIN";
+
+    /// <summary>
+    /// RIGHT JOIN (RIGHT OUTER JOIN) - Returns all rows from the right table, and the matching rows from the left table.
+    /// </summary>
+    public const string RightJoin = "RIGHT JOIN";
+
+    /// <summary>
+    /// FULL JOIN (FULL OUTER JOIN) - Returns all rows from both tables.
+    /// </summary>
+    public const string FullJoin = "FULL JOIN";
+
+    /// <summary>
+    /// CROSS JOIN - Returns the Cartesian product of both tables (all possible combinations).
+    /// </summary>
+    public const string CrossJoin = "CROSS JOIN";
 }
 

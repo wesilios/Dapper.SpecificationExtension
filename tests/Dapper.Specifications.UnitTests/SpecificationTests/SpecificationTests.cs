@@ -62,27 +62,79 @@ public class SpecificationTests
     }
 
     [Fact]
-    public void AddJoin_ShouldAppendJoinClause()
+    public void AddInnerJoin_ShouldAppendInnerJoinClause()
     {
         // Arrange
         var spec = new TestSpecification();
 
         // Act
-        spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
+        spec.AddInnerJoin("Orders ON Users.Id = Orders.UserId");
 
         // Assert
         spec.JoinClause.ShouldBe(" INNER JOIN Orders ON Users.Id = Orders.UserId");
     }
 
     [Fact]
-    public void AddJoin_WithMultipleCalls_ShouldAppendAllJoins()
+    public void AddLeftJoin_ShouldAppendLeftJoinClause()
     {
         // Arrange
         var spec = new TestSpecification();
 
         // Act
-        spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
-        spec.AddJoin("LEFT JOIN Products ON Orders.ProductId = Products.Id");
+        spec.AddLeftJoin("Products ON Orders.ProductId = Products.Id");
+
+        // Assert
+        spec.JoinClause.ShouldBe(" LEFT JOIN Products ON Orders.ProductId = Products.Id");
+    }
+
+    [Fact]
+    public void AddRightJoin_ShouldAppendRightJoinClause()
+    {
+        // Arrange
+        var spec = new TestSpecification();
+
+        // Act
+        spec.AddRightJoin("Products ON Orders.ProductId = Products.Id");
+
+        // Assert
+        spec.JoinClause.ShouldBe(" RIGHT JOIN Products ON Orders.ProductId = Products.Id");
+    }
+
+    [Fact]
+    public void AddFullJoin_ShouldAppendFullJoinClause()
+    {
+        // Arrange
+        var spec = new TestSpecification();
+
+        // Act
+        spec.AddFullJoin("Products ON Orders.ProductId = Products.Id");
+
+        // Assert
+        spec.JoinClause.ShouldBe(" FULL JOIN Products ON Orders.ProductId = Products.Id");
+    }
+
+    [Fact]
+    public void AddCrossJoin_ShouldAppendCrossJoinClause()
+    {
+        // Arrange
+        var spec = new TestSpecification();
+
+        // Act
+        spec.AddCrossJoin("Categories");
+
+        // Assert
+        spec.JoinClause.ShouldBe(" CROSS JOIN Categories");
+    }
+
+    [Fact]
+    public void AddJoins_WithMultipleCalls_ShouldAppendAllJoins()
+    {
+        // Arrange
+        var spec = new TestSpecification();
+
+        // Act
+        spec.AddInnerJoin("Orders ON Users.Id = Orders.UserId");
+        spec.AddLeftJoin("Products ON Orders.ProductId = Products.Id");
 
         // Assert
         spec.JoinClause.ShouldBe(" INNER JOIN Orders ON Users.Id = Orders.UserId LEFT JOIN Products ON Orders.ProductId = Products.Id");
@@ -171,7 +223,7 @@ public class SpecificationTests
         spec.SetSelectClause("Id, Name AS Username, Age, IsActive");
         spec.AddWhere("Age > @MinAge", new { MinAge = 18 });
         spec.AddWhere("IsActive = 1");
-        spec.AddJoin("INNER JOIN Orders ON Users.Id = Orders.UserId");
+        spec.AddInnerJoin("Orders ON Users.Id = Orders.UserId");
         spec.AddOrder("Name ASC");
         spec.AddOrder("Age DESC");
         spec.SetPaging(0, 10);
