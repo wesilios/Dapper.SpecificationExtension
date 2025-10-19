@@ -1,6 +1,4 @@
-﻿using static Dapper.Specifications.SqlKeywords;
-
-namespace Dapper.Specifications.Dialects;
+﻿namespace Dapper.Specifications.Dialects;
 
 public class SqliteDialect : ISqlDialect
 {

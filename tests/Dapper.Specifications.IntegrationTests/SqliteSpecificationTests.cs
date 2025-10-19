@@ -1,9 +1,4 @@
-﻿using Dapper.Specifications.Dialects;
-using Dapper.Specifications.IntegrationTests.Fixtures;
-using Dapper.Specifications.IntegrationTests.MockSpecifications;
-using Dapper.Specifications.Specifications;
-using Microsoft.Data.Sqlite;
-using Shouldly;
+﻿using Microsoft.Data.Sqlite;
 
 namespace Dapper.Specifications.IntegrationTests;
 
@@ -21,6 +16,18 @@ public class SqliteSpecificationTests : SpecificationIntegrationTestBase<SqliteD
         await Connection.ExecuteAsync(@"
             DROP TABLE IF EXISTS products;
             DROP TABLE IF EXISTS product_collections;
+            DROP TABLE IF EXISTS categories;
+            DROP TABLE IF EXISTS suppliers;
+
+            CREATE TABLE IF NOT EXISTS categories (
+                category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS suppliers (
+                supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL
+            );
 
             CREATE TABLE IF NOT EXISTS product_collections (
                 collection_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,18 +40,24 @@ public class SqliteSpecificationTests : SpecificationIntegrationTestBase<SqliteD
                 name TEXT NOT NULL,
                 price REAL NOT NULL,
                 collection_id INTEGER NOT NULL,
+                category_id INTEGER NOT NULL, 
+                supplier_id INTEGER NOT NULL, 
+                FOREIGN KEY (category_id) REFERENCES categories(category_id),
+                FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id),
                 FOREIGN KEY (collection_id) REFERENCES product_collections(collection_id)
             );
         ");
 
-        await Connection.ExecuteAsync("DELETE FROM products;");
-        await Connection.ExecuteAsync("DELETE FROM product_collections;");
         await Connection.ExecuteAsync(
             "INSERT INTO product_collections (name, description) VALUES ('Renewable Energy', 'Renewable Energy Products'), ('Vehicles', 'Vehicles transportation');");
         await Connection.ExecuteAsync(
-            "INSERT INTO products (name, price, collection_id) VALUES ('Solar Panel', 100, 1), ('Wind Turbine', 500, 1);");
+            "INSERT INTO categories (name) VALUES ('Electronics'), ('Furniture'), ('Transportation');");
         await Connection.ExecuteAsync(
-            "INSERT INTO products (name, price, collection_id) VALUES ('Toyota Hatchback', 100, 2), ('Porches 911', 500, 2);");
+            "INSERT INTO suppliers (name) VALUES ('Supplier A'), ('Supplier B'), ('Supplier C'), ('Supplier D');");
+        await Connection.ExecuteAsync(
+            "INSERT INTO products (name, price, collection_id, category_id, supplier_id) VALUES ('Solar Panel', 100, 1, 1, 1), ('Wind Turbine', 500, 1, 1, 2);");
+        await Connection.ExecuteAsync(
+            "INSERT INTO products (name, price, collection_id, category_id, supplier_id) VALUES ('Toyota Hatchback', 100, 2, 3, 3), ('Porches 911', 500, 2, 3, 4);");
     }
 
     [Fact]

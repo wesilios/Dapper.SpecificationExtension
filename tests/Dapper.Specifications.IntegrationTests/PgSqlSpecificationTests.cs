@@ -1,9 +1,4 @@
-﻿using Dapper.Specifications.Dialects;
-using Dapper.Specifications.IntegrationTests.Fixtures;
-using Dapper.Specifications.IntegrationTests.MockSpecifications;
-using Dapper.Specifications.Specifications;
-using Npgsql;
-using Shouldly;
+﻿using Npgsql;
 
 namespace Dapper.Specifications.IntegrationTests;
 
@@ -20,6 +15,18 @@ public class PgSqlSpecificationTests : SpecificationIntegrationTestBase<PgSqlDat
         await Connection.ExecuteAsync(@"
             DROP TABLE IF EXISTS products;
             DROP TABLE IF EXISTS product_collections;
+            DROP TABLE IF EXISTS categories;
+            DROP TABLE IF EXISTS suppliers;
+
+            CREATE TABLE IF NOT EXISTS categories (
+                category_id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS suppliers (
+                supplier_id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL
+            );
 
             CREATE TABLE IF NOT EXISTS product_collections (
                 collection_id SERIAL PRIMARY KEY,
@@ -31,17 +38,23 @@ public class PgSqlSpecificationTests : SpecificationIntegrationTestBase<PgSqlDat
                 product_id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 price DECIMAL(10,2) NOT NULL,
+                category_id INTEGER NOT NULL REFERENCES categories(category_id),
+                supplier_id INTEGER NOT NULL REFERENCES suppliers(supplier_id),
                 collection_id INTEGER NOT NULL REFERENCES product_collections(collection_id)
             );
         ");
 
-        await Connection.ExecuteAsync("TRUNCATE TABLE products, product_collections RESTART IDENTITY CASCADE;");
+        await Connection.ExecuteAsync("TRUNCATE TABLE products, product_collections, categories, suppliers RESTART IDENTITY CASCADE;");
         await Connection.ExecuteAsync(
             "INSERT INTO product_collections (name, description) VALUES ('Renewable Energy', 'Renewable Energy Products'), ('Vehicles', 'Vehicles transportation');");
         await Connection.ExecuteAsync(
-            "INSERT INTO products (name, price, collection_id) VALUES ('Solar Panel', 100, 1), ('Wind Turbine', 500, 1);");
+            "INSERT INTO categories (name) VALUES ('Electronics'), ('Furniture'), ('Transportation');");
         await Connection.ExecuteAsync(
-            "INSERT INTO products (name, price, collection_id) VALUES ('Toyota Hatchback', 100, 2), ('Porches 911', 500, 2);");
+            "INSERT INTO suppliers (name) VALUES ('Supplier A'), ('Supplier B'), ('Supplier C'), ('Supplier D');");
+        await Connection.ExecuteAsync(
+            "INSERT INTO products (name, price, collection_id, category_id, supplier_id) VALUES ('Solar Panel', 100, 1, 1, 1), ('Wind Turbine', 500, 1, 1, 2);");
+        await Connection.ExecuteAsync(
+            "INSERT INTO products (name, price, collection_id, category_id, supplier_id) VALUES ('Toyota Hatchback', 100, 2, 3, 3), ('Porches 911', 500, 2, 3, 4);");
     }
 
     [Fact]
@@ -112,7 +125,7 @@ public class PgSqlSpecificationTests : SpecificationIntegrationTestBase<PgSqlDat
 
         specification.SetSelectClause("pc.collection_id, pc.name, pc.description, p.product_id, p.name, p.price");
 
-        specification.AddJoin("INNER JOIN products p ON p.collection_id = pc.collection_id");
+        specification.AddInnerJoin("products p ON p.collection_id = pc.collection_id");
 
         specification.AddWhere("p.collection_id = @CollectionId", new { CollectionId = 2 });
 
@@ -152,7 +165,7 @@ public class PgSqlSpecificationTests : SpecificationIntegrationTestBase<PgSqlDat
 
         specification.SetSelectClause("pc.collection_id, pc.name, pc.description, p.product_id, p.name, p.price");
 
-        specification.AddJoin("INNER JOIN products p ON p.collection_id = pc.collection_id");
+        specification.AddInnerJoin("products p ON p.collection_id = pc.collection_id");
 
         specification.AddWhere("p.collection_id = @CollectionId", new { CollectionId = 2 });
 

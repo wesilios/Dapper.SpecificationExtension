@@ -1,6 +1,4 @@
-﻿using Dapper.Specifications.Specifications;
-
-namespace Dapper.Specifications.IntegrationTests.MockSpecifications;
+﻿namespace Dapper.Specifications.IntegrationTests.MockSpecifications;
 
 public class ProductCollectionSpecification : Specification<ProductCollection>
 {

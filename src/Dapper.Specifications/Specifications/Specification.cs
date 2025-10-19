@@ -63,7 +63,8 @@ public abstract class Specification<T> : ISpecification<T>
     private readonly List<(ISpecification<T> Spec, bool IsUnionAll)> _unionSpecifications = new();
 
     /// <inheritdoc />
-    public IReadOnlyList<(ISpecification<T> Spec, bool IsUnionAll)> UnionSpecifications => _unionSpecifications.AsReadOnly();
+    public IReadOnlyList<(ISpecification<T> Spec, bool IsUnionAll)> UnionSpecifications =>
+        _unionSpecifications.AsReadOnly();
 
     /// <inheritdoc />
     public ISpecification<T>? FromSubquery { get; protected set; }
@@ -74,7 +75,8 @@ public abstract class Specification<T> : ISpecification<T>
     private readonly List<(string Name, ISpecification<T> Spec)> _commonTableExpressions = new();
 
     /// <inheritdoc />
-    public IReadOnlyList<(string Name, ISpecification<T> Spec)> CommonTableExpressions => _commonTableExpressions.AsReadOnly();
+    public IReadOnlyList<(string Name, ISpecification<T> Spec)> CommonTableExpressions =>
+        _commonTableExpressions.AsReadOnly();
 
     /// <inheritdoc />
     public ISpecification<T> SetSelectClause(string clause)
@@ -124,10 +126,42 @@ public abstract class Specification<T> : ISpecification<T>
     }
 
     /// <inheritdoc />
-    public ISpecification<T> AddJoin(string clause)
+    public ISpecification<T> AddInnerJoin(string clause)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clause);
-        JoinClause += $" {clause}";
+        JoinClause += AddJoin(InnerJoin, clause);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddLeftJoin(string clause)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+        JoinClause += AddJoin(LeftJoin, clause);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddRightJoin(string clause)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+        JoinClause += AddJoin(RightJoin, clause);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddFullJoin(string clause)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+        JoinClause += AddJoin(FullJoin, clause);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISpecification<T> AddCrossJoin(string clause)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clause);
+        JoinClause += AddJoin(CrossJoin, clause);
         return this;
     }
 
@@ -217,5 +251,10 @@ public abstract class Specification<T> : ISpecification<T>
         {
             a.Add(prop.Name, prop.GetValue(b));
         }
+    }
+
+    private string AddJoin(string joinType, string joinClause)
+    {
+        return $" {joinType} {joinClause}";
     }
 }

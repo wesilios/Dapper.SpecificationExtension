@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using Dapper.Specifications.IntegrationTests.Fixtures;
 
 namespace Dapper.Specifications.IntegrationTests;
 

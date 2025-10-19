@@ -141,12 +141,74 @@ public interface ISpecification<T>
     ISpecification<T> AddWhereOr(string clause, object? parameters = null);
 
     /// <summary>
-    /// Adds a JOIN clause to the query.
+    /// Adds an INNER JOIN clause to the query.
     /// </summary>
-    /// <param name="clause">The JOIN clause (e.g., "INNER JOIN categories c ON p.category_id = c.id").</param>
+    /// <param name="clause">The JOIN clause (e.g., "categories c ON p.category_id = c.id").</param>
     /// <returns>The specification instance for method chaining.</returns>
     /// <exception cref="ArgumentException">Thrown when clause is null, empty, or whitespace.</exception>
-    ISpecification<T> AddJoin(string clause);
+    /// <example>
+    /// <code>
+    /// spec.AddInnerJoin("categories c ON p.category_id = c.id");
+    /// // Generates: INNER JOIN categories c ON p.category_id = c.id
+    /// </code>
+    /// </example>
+    ISpecification<T> AddInnerJoin(string clause);
+
+    /// <summary>
+    /// Adds a LEFT JOIN clause to the query.
+    /// </summary>
+    /// <param name="clause">The JOIN clause (e.g., "categories c ON p.category_id = c.id").</param>
+    /// <returns>The specification instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when clause is null, empty, or whitespace.</exception>
+    /// <example>
+    /// <code>
+    /// spec.AddLeftJoin("categories c ON p.category_id = c.id");
+    /// // Generates: LEFT JOIN categories c ON p.category_id = c.id
+    /// </code>
+    /// </example>
+    ISpecification<T> AddLeftJoin(string clause);
+
+    /// <summary>
+    /// Adds a RIGHT JOIN clause to the query.
+    /// </summary>
+    /// <param name="clause">The JOIN clause (e.g., "categories c ON p.category_id = c.id").</param>
+    /// <returns>The specification instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when clause is null, empty, or whitespace.</exception>
+    /// <example>
+    /// <code>
+    /// spec.AddRightJoin("categories c ON p.category_id = c.id");
+    /// // Generates: RIGHT JOIN categories c ON p.category_id = c.id
+    /// </code>
+    /// </example>
+    ISpecification<T> AddRightJoin(string clause);
+
+    /// <summary>
+    /// Adds a FULL JOIN clause to the query.
+    /// </summary>
+    /// <param name="clause">The JOIN clause (e.g., "categories c ON p.category_id = c.id").</param>
+    /// <returns>The specification instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when clause is null, empty, or whitespace.</exception>
+    /// <example>
+    /// <code>
+    /// spec.AddFullJoin("categories c ON p.category_id = c.id");
+    /// // Generates: FULL JOIN categories c ON p.category_id = c.id
+    /// </code>
+    /// </example>
+    ISpecification<T> AddFullJoin(string clause);
+
+    /// <summary>
+    /// Adds a CROSS JOIN clause to the query.
+    /// </summary>
+    /// <param name="clause">The JOIN clause (e.g., "categories c").</param>
+    /// <returns>The specification instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when clause is null, empty, or whitespace.</exception>
+    /// <example>
+    /// <code>
+    /// spec.AddCrossJoin("categories c");
+    /// // Generates: CROSS JOIN categories c
+    /// </code>
+    /// </example>
+    ISpecification<T> AddCrossJoin(string clause);
 
     /// <summary>
     /// Adds a GROUP BY clause for aggregate queries.
