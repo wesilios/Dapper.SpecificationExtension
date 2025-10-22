@@ -1,5 +1,4 @@
 ﻿using Dapper.Specifications.Examples.Models;
-using Dapper.Specifications.Specifications;
 
 namespace Dapper.Specifications.Examples.Specifications;
 
